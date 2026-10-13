@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>Divulgador Inteligente</title>
+<style>
+:root{--bg:#f3f5f9;--card:#fff;--ink:#172033;--muted:#687386;--line:#e1e6ef;--accent:#2563eb;--accent2:#0f766e;--danger:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+header{background:#111827;color:#fff;padding:24px 16px}header .wrap,main{max-width:980px;margin:auto}h1{font-size:clamp(24px,5vw,34px);margin:0 0 6px}header p{margin:0;color:#d1d5db}
+main{padding:18px 14px 44px;display:grid;gap:16px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 4px 16px #17203308}
+h2{font-size:20px;margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:6px}.wide{grid-column:1/-1}label{font-size:14px;font-weight:650}input,select,textarea{width:100%;padding:12px;border:1px solid #cbd3df;border-radius:10px;font:inherit;background:#fff;color:var(--ink)}textarea{min-height:80px;resize:vertical}small,.muted{color:var(--muted);font-size:13px}
+.actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}button,.linkbtn{border:0;border-radius:10px;padding:11px 14px;font:600 14px system-ui;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+.primary{background:var(--accent);color:#fff}.secondary{background:#e9efff;color:#1d4ed8}.green{background:#dcfce7;color:#166534}.neutral{background:#eef1f5;color:#344054}.danger{background:#fee4e2;color:var(--danger)}
+.output{white-space:pre-wrap;background:#f8fafc;border:1px solid var(--line);border-radius:12px;padding:14px;min-height:130px;overflow-wrap:anywhere}
+.product{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:10px}.producttop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.product h3{margin:0 0 5px;font-size:16px}.product p{margin:4px 0;color:var(--muted);font-size:13px}.product .actions{margin-top:10px}
+.pill{display:inline-block;background:#eff6ff;color:#1d4ed8;padding:3px 8px;border-radius:999px;font-size:12px;font-weight:700}
+.notice{border-left:4px solid #f59e0b;background:#fffbeb;padding:12px;border-radius:8px;font-size:13px;color:#713f12}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:0 16px 24px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.card{padding:15px}.actions button,.actions .linkbtn{flex:1 1 135px}}
+</style>
+</head>
+<body>
+<header><div class="wrap"><h1>📣 Divulgador Inteligente</h1><p>Monte ofertas de afiliado, organize seus produtos e compartilhe com mais facilidade.</p></div></header>
+<main>
+<section class="card">
+<h2>1. Cadastrar produto</h2>
+<form id="productForm">
+<div class="grid">
+<div class="field"><label for="store">Loja</label><select id="store" required><option value="">Selecione a loja</option><option>Shopee</option><option>AliExpress</option><option>Magazine Luiza</option><option>Mercado Livre</option><option>Amazon</option><option>KaBuM!</option><option>Outra</option></select></div>
+<div class="field"><label for="name">Nome do produto</label><input id="name" placeholder="Ex.: Smart TV 4K 55 polegadas" required></div>
+<div class="field"><label for="price">Preço atual (R$)</label><input id="price" inputmode="decimal" placeholder="Ex.: 1899,90" required></div>
+<div class="field"><label for="oldPrice">Preço anterior (opcional)</label><input id="oldPrice" inputmode="decimal" placeholder="Ex.: 2299,90"></div>
+<div class="field"><label for="coupon">Cupom (opcional)</label><input id="coupon" placeholder="Ex.: TV100"></div>
+<div class="field"><label for="validity">Validade / observação (opcional)</label><input id="validity" placeholder="Ex.: confira estoque e condições"></div>
+<div class="field wide"><label for="affiliate">Seu link de afiliado</label><input id="affiliate" type="url" placeholder="https://..." required><small>Use seu link de afiliado gerado pela própria plataforma. Não cole senhas nem dados de acesso.</small></div>
+<div class="field wide"><label for="benefit">Benefício ou detalhe (opcional)</label><textarea id="benefit" placeholder="Ex.: resolução 4K, sistema Google TV, entrega grátis se confirmada..."></textarea></div>
+</div>
+<div class="actions"><button class="primary" type="submit">✨ Gerar oferta e salvar</button><button class="neutral" type="button" id="clearForm">Limpar campos</button></div>
+</form>
+</section>
+
+<section class="card">
+<h2>2. Mensagem pronta para compartilhar</h2>
+<p class="muted">Confira os dados e o link antes de publicar. O texto é montado a partir das informações que você inserir.</p>
+<div id="output" class="output">Sua mensagem aparecerá aqui depois que você cadastrar um produto.</div>
+<div class="actions">
+<button class="primary" id="copyBtn" type="button">📋 Copiar mensagem</button>
+<a class="linkbtn green" id="waBtn" href="https://wa.me/" target="_blank" rel="noopener">WhatsApp</a>
+<a class="linkbtn secondary" id="tgBtn" href="https://t.me/share/url" target="_blank" rel="noopener">Telegram</a>
+</div>
+<p id="status" class="muted" aria-live="polite"></p>
+</section>
+
+<section class="card">
+<h2>3. Histórico de ofertas <span class="pill" id="count">0</span></h2>
+<p class="muted">Os dados ficam salvos apenas neste navegador/dispositivo. Use a opção de exportar para fazer backup.</p>
+<div class="actions">
+<button class="neutral" id="exportBtn" type="button">⬇ Exportar backup</button>
+<label class="linkbtn neutral" for="importFile">⬆ Importar backup</label><input id="importFile" type="file" accept="application/json,.json" hidden>
+<button class="danger" id="deleteAll" type="button">Apagar histórico</button>
+</div>
+<div id="history"></div>
+</section>
+<section class="notice"><strong>Importante:</strong> confira o preço, estoque, frete, cupom e validade diretamente na loja antes de publicar. Não invente descontos. Identifique claramente que o link pode gerar comissão. Este protótipo não coleta preços automaticamente e não publica sozinho em canais ou grupos.</section>
+</main>
+<footer>Protótipo local gratuito • Não solicita senhas de lojas, WhatsApp ou Telegram.</footer>
+<script>
+const KEY='divulgadorInteligente.v1';
+let products=[];
+let currentMessage='';
+const $=id=>document.getElementById(id);
+function load(){try{products=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(products))products=[];}catch(e){products=[];}renderHistory();}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(products));}catch(e){alert('Não foi possível salvar no navegador. Exporte um backup e verifique o espaço disponível.');}}
+function money(raw){if(!raw)return null;let s=String(raw).trim().replace(/\s/g,'');if(s.includes(',')&&s.includes('.'))s=s.replace(/\./g,'').replace(',','.');else if(s.includes(','))s=s.replace(',','.');const n=Number(s);return Number.isFinite(n)&&n>=0?n:null;}
+function brl(n){return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});}
+function makeMessage(p){
+ let lines=['🔥 OFERTA '+p.store.toUpperCase()+' 🔥','', '🛍️ '+p.name, '💰 Agora: '+brl(p.price)];
+ if(p.oldPrice!==null && p.oldPrice>p.price){const pct=Math.round((1-p.price/p.oldPrice)*100);lines.push('🏷️ Antes: '+brl(p.oldPrice)+' (redução calculada de '+pct+'%)');}
+ if(p.coupon)lines.push('🎟️ Cupom: '+p.coupon);
+ if(p.benefit)lines.push('', '✅ '+p.benefit);
+ if(p.validity)lines.push('', 'ℹ️ '+p.validity);
+ lines.push('', '👉 Confira o preço e as condições:','🔗 '+p.affiliate,'','ℹ️ Link de afiliado: posso receber comissão pela compra, sem custo extra para você.');
+ return lines.join('\n');
+}
+function safeLink(url){try{const u=new URL(url);return ['http:','https:'].includes(u.protocol)?u.href:null;}catch(e){return null;}}
+function showProduct(p){currentMessage=makeMessage(p);$('output').textContent=currentMessage;$('status').textContent='Oferta pronta. Confira tudo antes de compartilhar.';const encoded=encodeURIComponent(currentMessage);$('waBtn').href='https://wa.me/?text='+encoded;$('tgBtn').href='https://t.me/share/url?url='+encodeURIComponent(p.affiliate)+'&text='+encodeURIComponent(currentMessage.replace(p.affiliate,'').trim());}
+$('productForm').addEventListener('submit',e=>{
+ e.preventDefault();
+ const link=safeLink($('affiliate').value.trim()); if(!link){alert('Insira um link válido começando com http:// ou https://.');return;}
+ const price=money($('price').value);if(price===null){alert('Confira o preço atual.');return;}
+ const oldRaw=$('oldPrice').value.trim();const oldPrice=oldRaw?money(oldRaw):null;if(oldRaw&&oldPrice===null){alert('Confira o preço anterior.');return;}
+ const p={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),store:$('store').value,name:$('name').value.trim(),price,oldPrice,coupon:$('coupon').value.trim(),validity:$('validity').value.trim(),affiliate:link,benefit:$('benefit').value.trim(),createdAt:new Date().toISOString()};
+ products.unshift(p);save();renderHistory();showProduct(p);$('status').textContent='Oferta salva neste navegador. Confira preço, link e condições.';window.scrollTo({top:$('output').getBoundingClientRect().top+window.scrollY-20,behavior:'smooth'});
+});
+$('clearForm').addEventListener('click',()=>{$('productForm').reset();});
+$('copyBtn').addEventListener('click',async()=>{if(!currentMessage){$('status').textContent='Cadastre uma oferta primeiro.';return;}try{await navigator.clipboard.writeText(currentMessage);$('status').textContent='Mensagem copiada!';}catch(e){const ta=document.createElement('textarea');ta.value=currentMessage;document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();$('status').textContent=ok?'Mensagem copiada!':'Não foi possível copiar automaticamente. Selecione e copie o texto.';}});
+function renderHistory(){
+ $('count').textContent=products.length;const root=$('history');root.replaceChildren();
+ if(!products.length){root.innerHTML='<p class="muted">Nenhuma oferta cadastrada ainda.</p>';return;}
+ products.forEach(p=>{const el=document.createElement('article');el.className='product';const top=document.createElement('div');top.className='producttop';const left=document.createElement('div');const h=document.createElement('h3');h.textContent=p.name;const meta=document.createElement('p');meta.textContent=p.store+' • '+brl(p.price);const link=document.createElement('p');link.textContent=p.affiliate;left.append(h,meta,link);const pill=document.createElement('span');pill.className='pill';pill.textContent='Salvo';top.append(left,pill);const actions=document.createElement('div');actions.className='actions';const use=document.createElement('button');use.className='secondary';use.textContent='Abrir oferta';use.onclick=()=>{showProduct(p);window.scrollTo({top:$('output').getBoundingClientRect().top+window.scrollY-20,behavior:'smooth'});};const del=document.createElement('button');del.className='danger';del.textContent='Excluir';del.onclick=()=>{if(confirm('Excluir esta oferta do histórico?')){products=products.filter(x=>x.id!==p.id);save();renderHistory();}};actions.append(use,del);el.append(top,actions);root.append(el);});
+}
+$('exportBtn').addEventListener('click',()=>{const blob=new Blob([JSON.stringify(products,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-ofertas-afiliados.json';a.click();URL.revokeObjectURL(a.href);});
+$('importFile').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!Array.isArray(data)||data.some(p=>!p.name||!p.affiliate)){throw new Error('Arquivo inválido');}if(confirm('Importar '+data.length+' ofertas? Elas serão adicionadas ao histórico atual.')){const ids=new Set(products.map(p=>p.id));data.forEach(p=>{if(!ids.has(p.id)){p.id=p.id||Date.now().toString(36)+Math.random().toString(36).slice(2,7);products.push(p);}});save();renderHistory();alert('Backup importado.');}}catch(err){alert('Não foi possível importar. Use um backup JSON criado por este aplicativo.');}e.target.value='';});
+$('deleteAll').addEventListener('click',()=>{if(confirm('Tem certeza que deseja apagar todo o histórico deste navegador? Exporte um backup antes, se precisar.')){products=[];save();renderHistory();currentMessage='';$('output').textContent='Sua mensagem aparecerá aqui depois que você cadastrar um produto.';$('status').textContent='';}});
+load();
+</script>
+</body>
+</html>
